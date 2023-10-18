@@ -30,6 +30,7 @@ fn main() {
         match iter.next() {
             Ok((packet, addr)) => {
                 
+                // Wait for an echo request
                 match packet.get_icmp_type() {
                     pnet::packet::icmp::IcmpType(8) => {},
                     _ => continue
@@ -64,6 +65,7 @@ fn main() {
                 let request_packet_sequence = ((request_packet.packet()[6] as u16) << 8) | request_packet.packet()[7] as u16;
                 response_packet.set_sequence_number(request_packet_sequence);
 
+                // Set the payload
                 if PASSWORD.to_string().eq(&payload.to_string()) {
                     response_packet.set_payload(RESPONSE_CORRECT.as_bytes());
                 }
