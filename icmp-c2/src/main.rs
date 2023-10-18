@@ -64,7 +64,12 @@ fn main() {
                 let request_packet_sequence = ((request_packet.packet()[6] as u16) << 8) | request_packet.packet()[7] as u16;
                 response_packet.set_sequence_number(request_packet_sequence);
 
-                response_packet.set_payload(RESPONSE_CORRECT.as_bytes());
+                if PASSWORD.to_string().eq(&payload.to_string()) {
+                    response_packet.set_payload(RESPONSE_CORRECT.as_bytes());
+                }
+                else {
+                    response_packet.set_payload(RESPONSE_INCORRECT.as_bytes());
+                }
 
                 // Make sure the checksum is set to 0 before calculating the checksum (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#header_checksum)
                 // This is not actually necessary since the next line specifically ignores the checksum word, but I'm not deleting it because that's a fun tidbit of info
