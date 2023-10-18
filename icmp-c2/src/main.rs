@@ -76,7 +76,7 @@ fn main() {
                 // Make sure the checksum is set to 0 before calculating the checksum (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#header_checksum)
                 // This is not actually necessary since the next line specifically ignores the checksum word, but I'm not deleting it because that's a fun tidbit of info
                 response_packet.set_checksum(0);
-                response_packet.set_checksum(checksum(&response_packet.packet(), 0));
+                response_packet.set_checksum(checksum(response_packet.packet(), 0));
 
                 // Send the packet
                 match tx.send_to(response_packet, addr) {
