@@ -1,6 +1,5 @@
 use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::icmp::echo_reply::MutableEchoReplyPacket;
-use pnet::packet::icmp::echo_request::EchoRequestPacket;
 use pnet::packet::Packet;
 use pnet::transport::TransportChannelType::Layer4;
 use pnet::transport::TransportProtocol::Ipv4;
@@ -35,17 +34,13 @@ fn main() {
                     pnet::packet::icmp::IcmpType(8) => {},
                     _ => continue
                 }
-                println!("{:?}", packet.packet());
-                let request_packet = match EchoRequestPacket::new(&packet.packet()) {
-                    Some(request_packet) => request_packet,
-                    None => {println!("Received packet that could not be converted to an echo request."); continue}
-                };
 
                 // Convert the payload from the ICMP packet to a String.
                 // The slicing is to strip out leading characters (the ID and sequence words)
                 // Trim any null characters off the end as well.
                 // Finally, make sure to remove the newline at the end.
                 let payload = String::from_utf8_lossy(&packet.payload()[4..]).replace('\n', "");
+                let request_packet = packet;
 
                 if PASSWORD.to_string().eq(&payload.to_string()) {
                     println!("Received flag request from {} :)", addr);
