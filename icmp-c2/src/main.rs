@@ -40,62 +40,42 @@ fn main() {
                 // Trim any null characters off the end as well.
                 // Finally, make sure to remove the newline at the end.
                 let payload = String::from_utf8_lossy(&packet.payload()[4..]).replace('\n', "");
+
+                // Rename packet so it's easier to understand its purpose
                 let request_packet = packet;
 
+                // Initialize response_packet
+                let mut packet_vector: Vec<u8> = 
                 if PASSWORD.to_string().eq(&payload.to_string()) {
                     println!("Received flag request from {} :)", addr);
-
-                    let mut packet_vector: Vec<u8> = vec![0; 8 + RESPONSE_CORRECT.as_bytes().len()];
-                    let mut response_packet = MutableEchoReplyPacket::new(&mut packet_vector).unwrap();
-    
-                    // Get the ICMP ID from the incoming packet by converting two u8s to a u16, then set that as the ID on the outgoing packet
-                    let request_packet_id = ((request_packet.packet()[4] as u16) << 8) | request_packet.packet()[5] as u16;
-                    response_packet.set_identifier(request_packet_id);
-
-                    // Get the ICMP sequence number from the incoming packet the same way we got the ID
-                    let request_packet_sequence = ((request_packet.packet()[6] as u16) << 8) | request_packet.packet()[7] as u16;
-                    response_packet.set_sequence_number(request_packet_sequence);
-
-                    response_packet.set_payload(RESPONSE_CORRECT.as_bytes());
-
-                    // Make sure the checksum is set to 0 before calculating the checksum (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#header_checksum)
-                    // This is not actually necessary since the next line specifically ignores the checksum word, but I'm not deleting it because that's a fun tidbit of info
-                    response_packet.set_checksum(0);
-                    response_packet.set_checksum(checksum(&response_packet.packet(), 0));
-
-                    // Send the packet
-                    match tx.send_to(response_packet, addr) {
-                        Ok(_) => (),
-                        Err(e) => panic!("failed to send packet: {}", e),
-                    }                
+                    vec![0; 8 + RESPONSE_CORRECT.as_bytes().len()]
                 }
                 else {
                     println!("Received ICMP packet from {} with wrong payload ({}) :(", addr, payload);
+                    vec![0; 8 + RESPONSE_INCORRECT.as_bytes().len()]
+                };
+                let mut response_packet = MutableEchoReplyPacket::new(&mut packet_vector).unwrap();
 
-                    let mut packet_vector: Vec<u8> = vec![0; 8 + RESPONSE_INCORRECT.as_bytes().len()];
-                    let mut response_packet = MutableEchoReplyPacket::new(&mut packet_vector).unwrap();
-    
-                    // Get the ICMP ID from the incoming packet by converting two u8s to a u16, then set that as the ID on the outgoing packet
-                    let request_packet_id = ((request_packet.packet()[4] as u16) << 8) | request_packet.packet()[5] as u16;
-                    response_packet.set_identifier(request_packet_id);
+                // Get the ICMP ID from the incoming packet by converting two u8s to a u16, then set that as the ID on the outgoing packet
+                let request_packet_id = ((request_packet.packet()[4] as u16) << 8) | request_packet.packet()[5] as u16;
+                response_packet.set_identifier(request_packet_id);
 
-                    // Get the ICMP sequence number from the incoming packet the same way we got the ID
-                    let request_packet_sequence = ((request_packet.packet()[6] as u16) << 8) | request_packet.packet()[7] as u16;
-                    response_packet.set_sequence_number(request_packet_sequence);
+                // Get the ICMP sequence number from the incoming packet the same way we got the ID
+                let request_packet_sequence = ((request_packet.packet()[6] as u16) << 8) | request_packet.packet()[7] as u16;
+                response_packet.set_sequence_number(request_packet_sequence);
 
-                    response_packet.set_payload(RESPONSE_INCORRECT.as_bytes());
+                response_packet.set_payload(RESPONSE_CORRECT.as_bytes());
 
-                    // Make sure the checksum is set to 0 before calculating the checksum (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#header_checksum)
-                    // This is not actually necessary since the next line specifically ignores the checksum word, but I'm not deleting it because that's a fun tidbit of info
-                    response_packet.set_checksum(0);
-                    response_packet.set_checksum(checksum(&response_packet.packet(), 0));
+                // Make sure the checksum is set to 0 before calculating the checksum (https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#header_checksum)
+                // This is not actually necessary since the next line specifically ignores the checksum word, but I'm not deleting it because that's a fun tidbit of info
+                response_packet.set_checksum(0);
+                response_packet.set_checksum(checksum(&response_packet.packet(), 0));
 
-                    // Send the packet
-                    match tx.send_to(response_packet, addr) {
-                        Ok(_) => (),
-                        Err(e) => panic!("failed to send packet: {}", e),
-                    }
-                }
+                // Send the packet
+                match tx.send_to(response_packet, addr) {
+                    Ok(_) => (),
+                    Err(e) => panic!("failed to send packet: {}", e),
+                }    
             }
             Err(e) => {
                 // If an error occurs, we can handle it here
