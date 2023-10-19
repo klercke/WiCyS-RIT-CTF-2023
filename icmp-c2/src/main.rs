@@ -8,8 +8,8 @@ use pnet::util::checksum;
 use std::env;
 
 const PASSWORD: &str = "flag plz :)";
-const RESPONSE_CORRECT: &str = "WCS{fe107f14a63f30efc7edb90f18c40b5a}";
-const RESPONSE_INCORRECT: &str = "That isn't the password. If you want something, try asking for it nicely.";
+const RESPONSE_CORRECT: &str = "WCS{7c2b749cc9bf114830c62077802ac6c4}";
+const RESPONSE_INCORRECT: &str = "ERR: Unknown command.";
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
